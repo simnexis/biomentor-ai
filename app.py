@@ -22,9 +22,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-with st.form("home_ask"):
-    q = st.text_input("Your question", placeholder="e.g. How does insulin resistance lead to type 2 diabetes?", label_visibility="collapsed")
-    go = st.form_submit_button("Search Evidence", type="primary")
+with st.form("home_ask", border=False):
+    col_input, col_btn = st.columns([4.2, 1])
+    with col_input:
+        q = st.text_input("Your question", placeholder="e.g. How does insulin resistance lead to type 2 diabetes?", label_visibility="collapsed")
+    with col_btn:
+        go = st.form_submit_button("Search", type="primary", use_container_width=True)
 if go and q.strip():
     st.session_state["de_query"] = q.strip()
     st.session_state["de_autorun"] = True

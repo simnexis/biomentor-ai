@@ -123,7 +123,7 @@ header[data-testid="stHeader"],
 
 .block-container {{
   max-width: 1080px;
-  padding-top: 4rem !important;
+  padding-top: 3.2rem !important;
   padding-bottom: 4rem;
 }}
 

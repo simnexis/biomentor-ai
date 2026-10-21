@@ -138,7 +138,7 @@ def _sidebar() -> None:
         st.divider()
 
         # Gemini API Key & Model Configuration
-        with st.expander("Gemini API Configuration", expanded=not s.has_gemini):
+        with st.expander("Gemini API Configuration", expanded=False):
             st.caption("Optional: enter Google Gemini API key to enable LLM synthesis.")
             key_val = st.text_input(
                 "Gemini API Key",
@@ -155,15 +155,14 @@ def _sidebar() -> None:
             model_idx = model_options.index(current_model)
             selected_model = st.selectbox("Gemini Model", model_options, index=model_idx, key="sidebar_gemini_model_sel")
 
-            col_save, col_test = st.columns(2)
-            if col_save.button("Save Key", type="primary", use_container_width=True, key="save_gemini_btn"):
+            if st.button("Save API Key", type="primary", use_container_width=True, key="save_gemini_btn"):
                 cleaned = key_val.strip() if key_val else None
                 st.session_state["gemini_api_key"] = cleaned
                 st.session_state["gemini_model"] = selected_model
                 st.success("API key saved.")
                 st.rerun()
 
-            if col_test.button("Test Connection", use_container_width=True, key="test_gemini_btn"):
+            if st.button("Test Connection", use_container_width=True, key="test_gemini_btn"):
                 test_key = key_val.strip() or s.gemini_api_key
                 if not test_key:
                     st.warning("Please enter an API key above.")
