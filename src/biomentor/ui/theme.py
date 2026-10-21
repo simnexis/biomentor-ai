@@ -90,9 +90,15 @@ def get_theme_css(mode: str = "auto") -> str:
   font-family: var(--sans);
 }}
 
-/* Top navigation header: seamless transparent bar */
+/* Top decoration bar & header: completely remove white strip and make seamless */
+[data-testid="stDecoration"] {{
+  display: none !important;
+}}
+
 header[data-testid="stHeader"] {{
   background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
   color: var(--ink) !important;
   backdrop-filter: blur(8px);
   border-bottom: 1px solid transparent;
@@ -406,7 +412,10 @@ button[data-baseweb="tab"]:hover {{
 
 /* Buttons */
 .stButton > button,
-.stDownloadButton > button {{
+.stDownloadButton > button,
+button[data-testid="baseButton-secondary"],
+button[kind="secondary"],
+div[data-testid="stButton"] button {{
   border-radius: 8px !important;
   font-weight: 500 !important;
   transition: all 0.15s ease;
@@ -414,10 +423,19 @@ button[data-baseweb="tab"]:hover {{
   background-color: var(--card-bg) !important;
   color: var(--ink) !important;
 }}
-.stButton > button:hover {{
+.stButton > button *,
+button[data-testid="baseButton-secondary"] * {{
+  color: var(--ink) !important;
+}}
+.stButton > button:hover,
+button[data-testid="baseButton-secondary"]:hover {{
   border-color: var(--indigo) !important;
   color: var(--indigo) !important;
   background-color: var(--indigo-soft) !important;
+}}
+.stButton > button:hover *,
+button[data-testid="baseButton-secondary"]:hover * {{
+  color: var(--indigo) !important;
 }}
 
 .stButton > button[kind="primary"],
