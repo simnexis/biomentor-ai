@@ -13,16 +13,23 @@ dist/
 .pytest_cache/
 .ruff_cache/
 
-# Local data, caches, indexes, evaluation outputs (regenerate with the scripts)
+# Local data, caches, indexes, evaluation outputs (large corpora ignored, demo fixtures included)
 data/raw/*
 data/processed/*
 data/indexes/*
-data/evaluation/results/
-data/evaluation/answer_reviews/
+data/evaluation/results/*
+data/evaluation/answer_reviews/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/indexes/.gitkeep
 !data/evaluation/.gitkeep
+!data/raw/demo_synthetic.jsonl
+!data/indexes/manifest.json
+!data/indexes/passages.jsonl
+!data/indexes/bm25.json
+!data/evaluation/demo_benchmark.jsonl
+!data/evaluation/results/latest_results.json
+!data/evaluation/results/aggregate_metrics.csv
 
 # Uploads and caches
 uploads/

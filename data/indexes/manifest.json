@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-10-21T13:55:12+00:00",
+  "corpus_kind": "demo_synthetic",
+  "n_documents": 12,
+  "n_passages": 12,
+  "fingerprint": "51c846d44a68a794a5874b3954bbd49de03c9ee36e54e1e8d19ec99ccc0c6c19",
+  "chunk_config": {
+    "max_chars": 800,
+    "overlap_sentences": 1
+  },
+  "chunk_signature": "max800-ov1",
+  "rrf_c": 60,
+  "dense": {
+    "built": false,
+    "error": "Dense index not requested."
+  }
+}
