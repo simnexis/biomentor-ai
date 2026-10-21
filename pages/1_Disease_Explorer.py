@@ -22,10 +22,10 @@ from biomentor.services.learning_service import (  # noqa: E402
 from biomentor.ui import components as ui  # noqa: E402
 from biomentor.ui.runtime import get_gemini, get_search_service, get_settings, setup_page  # noqa: E402
 
-setup_page("Disease Explorer", "🔬")
+setup_page("Disease Explorer")
 
-st.markdown('<span class="recruiter-badge">🔬 Dual-Stage Biomedical RAG • NCBI PubMed Live Engine</span>', unsafe_allow_html=True)
-st.title("Disease Explorer & Biomedical Synthesis")
+st.markdown('<span class="tech-tag">Biomedical RAG Platform • NCBI PubMed Engine</span>', unsafe_allow_html=True)
+st.title("Disease Explorer & Literature Synthesis")
 st.caption("Retrieve peer-reviewed literature across PubMed, apply Hybrid RRF vector search + Cross-Encoder neural reranking, and generate citation-grounded clinical explanations.")
 
 settings, svc = get_settings(), get_search_service()
@@ -42,7 +42,7 @@ def run(query: str, level: str, source: str, mode: str) -> None:
         st.session_state["de_result"] = explain_topic(svc, get_gemini(), current_settings, query, level, mode, source)
 
 
-with st.expander("👨‍💻 Architecture & Evaluation Highlights (Recruiter / Tech Overview)", expanded=False):
+with st.expander("System Architecture & Benchmark Highlights", expanded=False):
     st.markdown("""
     - **Dual-Stage Retrieval Stack:** BM25 (lexical) + `all-MiniLM-L6-v2` (dense vector embeddings) fused via **Reciprocal Rank Fusion (RRF, $c=60$)**.
     - **Cross-Encoder Neural Reranking:** High-precision reranker (`cross-encoder/ms-marco-MiniLM-L-6-v2`) scoring passage-query cross-attention.
@@ -50,19 +50,19 @@ with st.expander("👨‍💻 Architecture & Evaluation Highlights (Recruiter / 
     - **Strict Citation Grounding:** Every claim is verified against evidence passage nonces `[E1, E2]` with zero-hallucination guardrails.
     """)
 
-# One-Click Case Studies for instant evaluator demonstration
-st.markdown("**⚡ Quick Case Studies (One-Click Demonstrations)**")
+# Benchmark Case Studies for instant demonstration
+st.markdown("**Benchmark Case Studies**")
 col_c1, col_c2, col_c3, col_c4 = st.columns(4)
-if col_c1.button("🩺 Type 2 Diabetes", use_container_width=True, help="Beta-cell dysfunction & insulin resistance"):
+if col_c1.button("Type 2 Diabetes", use_container_width=True, help="Beta-cell dysfunction & insulin resistance"):
     run("type 2 diabetes pathophysiology and insulin resistance", "biology student", "auto", "hybrid_rerank")
     st.rerun()
-if col_c2.button("✂️ CRISPR-Cas9", use_container_width=True, help="Double-strand break cleavage & HDR/NHEJ"):
+if col_c2.button("CRISPR-Cas9", use_container_width=True, help="Double-strand break cleavage & HDR/NHEJ"):
     run("CRISPR Cas9 off target cleavage and DNA repair", "biology student", "auto", "hybrid_rerank")
     st.rerun()
-if col_c3.button("💉 mRNA Vaccines", use_container_width=True, help="Immunogenicity & memory T-cells"):
+if col_c3.button("mRNA Vaccines", use_container_width=True, help="Immunogenicity & memory T-cells"):
     run("mRNA vaccine immunogenicity and CD8 T cell memory", "biology student", "auto", "hybrid_rerank")
     st.rerun()
-if col_c4.button("🫀 Heart Failure", use_container_width=True, help="Neurohormonal activation & SGLT2i"):
+if col_c4.button("Heart Failure", use_container_width=True, help="Neurohormonal activation & SGLT2i"):
     run("heart failure pathophysiology and SGLT2 inhibitors", "biology student", "auto", "hybrid_rerank")
     st.rerun()
 
@@ -72,7 +72,7 @@ with st.form("explore"):
     level = c1.selectbox("Explanation level", LEVELS, index=1, help="Calibrates the pedagogical depth without altering empirical evidence.")
     source = c2.selectbox("Evidence source", list(SOURCES), format_func=SOURCES.get)
     mode = c3.selectbox("Retrieval pipeline", ["hybrid_rerank", "hybrid", "bm25", "dense"], format_func=MODE_LABELS.get, help="hybrid_rerank applies Cross-Encoder neural reranking on top of Hybrid RRF.")
-    submitted = st.form_submit_button("🔍 Search & Synthesize Literature", type="primary")
+    submitted = st.form_submit_button("Search Literature", type="primary")
 
 if submitted:
     run(query, level, source, mode)
@@ -134,13 +134,13 @@ with tab_answer:
         ui.render_citation_report(result.report)
     elif result.status == NO_GEMINI or (search and search.results and result.status != ABSTAINED):
         st.info(
-            "💡 **Extractive Mode Active**: Displaying exact key sentences from peer-reviewed evidence. "
+            "**Extractive Mode Active**: Displaying exact key sentences from peer-reviewed evidence. "
             "To generate comprehensive AI definitions, mechanisms, and clinical glossaries with Google Gemini, "
-            "enter your API key in the sidebar or right here:"
+            "enter your API key in the sidebar or below:"
         )
         c_k, c_b = st.columns([3, 1])
-        inline_key = c_k.text_input("Gemini API Key", type="password", placeholder="Paste Gemini API Key here (AIzaSy...)", key="inline_gemini_key", label_visibility="collapsed")
-        if c_b.button("🚀 Activate AI", type="primary", use_container_width=True, key="inline_activate_gemini"):
+        inline_key = c_k.text_input("Gemini API Key", type="password", placeholder="Paste Gemini API Key here...", key="inline_gemini_key", label_visibility="collapsed")
+        if c_b.button("Activate AI", type="primary", use_container_width=True, key="inline_activate_gemini"):
             if inline_key.strip():
                 st.session_state["gemini_api_key"] = inline_key.strip()
                 run(result.query, result.level, source, mode)

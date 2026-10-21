@@ -98,7 +98,7 @@ def get_gemini() -> GeminiClient:
     return _gemini_for(s.gemini_api_key, s.gemini_model)
 
 
-def setup_page(title: str, icon: str = "🧬") -> None:
+def setup_page(title: str, icon: str | None = None) -> None:
     """Must be the first Streamlit call on a page."""
     st.set_page_config(page_title=f"{title} - BioMentor AI", page_icon=icon, layout="wide")
     current_theme = st.session_state.get("theme_mode", "auto")
@@ -111,16 +111,16 @@ def _sidebar() -> None:
     svc = get_search_service()
     with st.sidebar:
         st.markdown("### BioMentor AI")
-        st.caption("Biomedical research and learning, with the evidence on show.")
+        st.caption("Evidence-grounded biomedical research and learning.")
 
-        # Interactive Theme Dropdown
+        # Clean Theme Selector (No emojis)
         active_theme = st.session_state.get("theme_mode", "auto")
         theme_options = ["auto", "light", "dark"]
         theme_idx = theme_options.index(active_theme) if active_theme in theme_options else 0
         chosen_theme = st.selectbox(
             "Appearance Theme",
             options=theme_options,
-            format_func=lambda x: {"auto": "🌓 Theme: System Auto", "light": "☀️ Theme: Light Histology", "dark": "🌙 Theme: Modern Dark"}.get(x, x),
+            format_func=lambda x: {"auto": "Theme: System Auto", "light": "Theme: Light", "dark": "Theme: Dark"}.get(x, x),
             index=theme_idx,
             key="sidebar_theme_mode",
             label_visibility="collapsed",
@@ -129,24 +129,24 @@ def _sidebar() -> None:
             st.session_state["theme_mode"] = chosen_theme
             st.rerun()
 
-        st.page_link("app.py", label="🏠 Home")
-        st.page_link("pages/1_Disease_Explorer.py", label="🔬 Disease Explorer")
-        st.page_link("pages/2_Research_Search.py", label="🔎 Research Search")
-        st.page_link("pages/3_Paper_Explainer.py", label="📄 Paper Explainer")
-        st.page_link("pages/4_Study_Lab.py", label="🎓 Study Lab")
-        st.page_link("pages/5_Model_Evaluation.py", label="📊 Model Evaluation")
+        st.page_link("app.py", label="Home")
+        st.page_link("pages/1_Disease_Explorer.py", label="Disease Explorer")
+        st.page_link("pages/2_Research_Search.py", label="Research Search")
+        st.page_link("pages/3_Paper_Explainer.py", label="Paper Explainer")
+        st.page_link("pages/4_Study_Lab.py", label="Study Lab")
+        st.page_link("pages/5_Model_Evaluation.py", label="Model Evaluation")
         st.divider()
 
         # Gemini API Key & Model Configuration
-        with st.expander("🔑 Gemini AI Setup", expanded=not s.has_gemini):
-            st.caption("Enter your Google Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey).")
+        with st.expander("Gemini API Configuration", expanded=not s.has_gemini):
+            st.caption("Optional: enter Google Gemini API key to enable LLM synthesis.")
             key_val = st.text_input(
                 "Gemini API Key",
                 value=st.session_state.get("gemini_api_key") or (s.gemini_api_key or ""),
                 type="password",
-                placeholder="AIzaSy...",
+                placeholder="Paste API Key here...",
                 key="sidebar_gemini_key_input",
-                help="Key is stored securely in memory for this session and never exposed or logged.",
+                help="Key is stored in session memory only and never logged.",
             )
             model_options = list(SUPPORTED_GEMINI_MODELS)
             current_model = st.session_state.get("gemini_model") or s.gemini_model
@@ -160,10 +160,10 @@ def _sidebar() -> None:
                 cleaned = key_val.strip() if key_val else None
                 st.session_state["gemini_api_key"] = cleaned
                 st.session_state["gemini_model"] = selected_model
-                st.success("API key saved!")
+                st.success("API key saved.")
                 st.rerun()
 
-            if col_test.button("Test Key", use_container_width=True, key="test_gemini_btn"):
+            if col_test.button("Test Connection", use_container_width=True, key="test_gemini_btn"):
                 test_key = key_val.strip() or s.gemini_api_key
                 if not test_key:
                     st.warning("Please enter an API key above.")
@@ -176,7 +176,7 @@ def _sidebar() -> None:
                                 model=selected_model,
                                 contents="Respond with the single word 'Connected'.",
                             )
-                            st.success(f"Connected! Response: {res.text.strip()}")
+                            st.success(f"Connected: {res.text.strip()}")
                             st.session_state["gemini_api_key"] = test_key
                             st.session_state["gemini_model"] = selected_model
                         except Exception as exc:
@@ -197,22 +197,22 @@ def _sidebar() -> None:
             else:
                 st.markdown(f'<span class="chip src-pubmed">Local corpus: {esc(n_docs)} documents</span>', unsafe_allow_html=True)
         else:
-            st.markdown('<span class="chip">No local corpus. Live PubMed only.</span>', unsafe_allow_html=True)
+            st.markdown('<span class="chip">Live PubMed only</span>', unsafe_allow_html=True)
 
         if s.has_gemini:
             st.markdown(f'<span class="chip src-pubmed">Gemini active: {esc(s.gemini_model)}</span>', unsafe_allow_html=True)
         else:
-            st.markdown('<span class="chip">Gemini off. Extractive mode only.</span>', unsafe_allow_html=True)
+            st.markdown('<span class="chip">Extractive mode active</span>', unsafe_allow_html=True)
 
         st.markdown(
-            '<div style="padding: 0.65rem 0.8rem; border: 1px solid var(--rule); border-radius: 8px; '
-            'background: var(--card-bg); font-size: 0.78rem; margin: 0.6rem 0;">'
-            '<div style="font-weight: 700; color: var(--indigo); margin-bottom: 0.25rem;">👨‍💻 Portfolio Specs</div>'
+            '<div style="padding: 0.65rem 0.8rem; border: 1px solid var(--rule); border-radius: 6px; '
+            'background: var(--card-bg); font-size: 0.76rem; margin: 0.6rem 0;">'
+            '<div style="font-weight: 600; color: var(--ink); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.04em;">Engineering Specifications</div>'
             '<div style="color: var(--muted); line-height: 1.45;">'
-            '• Dual-Stage Hybrid RRF + Cross-Encoder<br>'
-            '• MRR: 1.000 | nDCG@10: 1.000 (p &lt; 0.001)<br>'
-            '• 179 Automated Tests (100% Passing)<br>'
-            '• 100% Strict Citation Attribution'
+            'Dual-Stage Hybrid RRF + Cross-Encoder<br>'
+            'MRR: 1.000 | nDCG@10: 1.000 (p &lt; 0.001)<br>'
+            '179 Automated Unit & Integration Tests<br>'
+            '100% Strict Citation Attribution'
             '</div></div>',
             unsafe_allow_html=True,
         )
