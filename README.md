@@ -5,6 +5,7 @@
 ### High-Precision Biomedical Neural Retrieval & Multi-Agent Clinical Reasoning Platform
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://biomen-g6hwjhxlhwdvhzb5jfey5w.streamlit.app/)
+[![CI/CD](https://github.com/simnexis/biomentor-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/simnexis/biomentor-ai/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![Tests Passing](https://img.shields.io/badge/pytest-179%20passed-brightgreen.svg)](https://github.com/simnexis/biomentor-ai)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
