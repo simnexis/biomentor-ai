@@ -17,7 +17,7 @@ from biomentor.data.ingestion import (
     find_raw_files,
     process_corpus,
 )
-from biomentor.data.preprocessing import STOPWORDS, tokenize
+from biomentor.data.preprocessing import STOPWORDS, expand_biomedical_query, tokenize
 from biomentor.data.pubmed_client import PubMedClient
 from biomentor.data.storage import deduplicate_documents, load_documents
 from biomentor.exceptions import (
@@ -66,6 +66,9 @@ def pubmed_query_variants(query: str) -> list[str]:
             keywords.append(tok)
     keywords = keywords[:8]
     variants = [original]
+    expanded = expand_biomedical_query(original)
+    if expanded != original and expanded not in variants:
+        variants.append(expanded)
     if keywords and " ".join(keywords) != original.lower():
         variants.append(" ".join(keywords))
         if len(keywords) > 1:

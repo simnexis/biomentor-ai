@@ -88,3 +88,13 @@ def test_redact_masks_keys():
     assert key not in redact(f"failed with {key}")
     assert "secret123456" not in redact("url?key=secret123456&x=1", ["secret123456"])
     assert redact("token abcdef", ["abcdef"]) == "token ***"
+
+
+def test_expand_biomedical_query():
+    from biomentor.data.preprocessing import expand_biomedical_query
+    expanded = expand_biomedical_query("treatment of T2D and CKD")
+    assert "type 2 diabetes" in expanded
+    assert "chronic kidney disease" in expanded
+    assert expand_biomedical_query("regular query") == "regular query"
+    assert expand_biomedical_query("") == ""
+

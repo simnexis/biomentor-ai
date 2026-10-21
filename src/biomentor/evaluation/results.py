@@ -75,3 +75,37 @@ def query_frame(results: dict, mode: str) -> pd.DataFrame:
 
 def skipped_methods(results: dict) -> dict[str, str]:
     return {m["label"]: m.get("reason", "") for m in results["methods"].values() if m.get("status") != "ok"}
+
+
+def significance_frame(results: dict, baseline_mode: str = "bm25", metric: str = "mrr") -> pd.DataFrame:
+    """Compare each retrieval method against baseline with paired Student's t-test p-values."""
+    from biomentor.evaluation.metrics import paired_significance_test
+
+    methods = results.get("methods", {})
+    if baseline_mode not in methods or methods[baseline_mode].get("status") != "ok":
+        return pd.DataFrame()
+    base_queries = {q["question_id"]: q[metric] for q in methods[baseline_mode].get("queries", [])}
+    rows = []
+    for mode, m in methods.items():
+        if mode == baseline_mode or m.get("status") != "ok":
+            continue
+        treat_queries = {q["question_id"]: q[metric] for q in m.get("queries", [])}
+        common_ids = [qid for qid in base_queries if qid in treat_queries]
+        if not common_ids:
+            continue
+        base_vals = [base_queries[qid] for qid in common_ids]
+        treat_vals = [treat_queries[qid] for qid in common_ids]
+        sig = paired_significance_test(base_vals, treat_vals)
+        sig_label = "Significant (p < 0.05)" if sig["p_value"] < 0.05 else "p >= 0.05"
+        rows.append({
+            "Method": m["label"],
+            "Metric": metric.upper(),
+            "Baseline (BM25)": round(sum(base_vals) / len(base_vals), 3),
+            "Method Mean": round(sum(treat_vals) / len(treat_vals), 3),
+            "Δ Mean": round(sig["mean_diff"], 3),
+            "t-stat": sig["t_statistic"],
+            "p-value": sig["p_value"],
+            "Significance": sig_label,
+        })
+    return pd.DataFrame(rows)
+

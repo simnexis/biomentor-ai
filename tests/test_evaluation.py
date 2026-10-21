@@ -241,3 +241,15 @@ def test_review_sheet_export_and_summary(passages, tmp_path):
         w.writerows(rows)
     s = summarize_reviews(path)
     assert s["supported_rate"] == 1.0 and s["citation_valid_rate"] == 1.0 and s["uncertainty_preserved_rate"] == 1.0
+
+
+def test_paired_significance_test():
+    from biomentor.evaluation.metrics import paired_significance_test
+
+    baseline = [0.5, 0.6, 0.7, 0.8]
+    treatment = [0.8, 0.9, 0.95, 1.0]
+    res = paired_significance_test(baseline, treatment)
+    assert res["mean_diff"] > 0
+    assert "p_value" in res and "t_statistic" in res
+    assert 0.0 <= res["p_value"] <= 1.0
+

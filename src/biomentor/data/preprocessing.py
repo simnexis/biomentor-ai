@@ -131,3 +131,40 @@ def title_key(title: str | None, year: int | None = None) -> str:
     """Key used to detect duplicate documents that lack a PMID/DOI."""
     letters = re.sub(r"[^a-z0-9]+", " ", (title or "").casefold()).strip()
     return f"{letters}|{year or ''}"
+
+
+BIOMEDICAL_ACRONYMS: dict[str, str] = {
+    "t2d": "type 2 diabetes",
+    "t1d": "type 1 diabetes",
+    "ckd": "chronic kidney disease",
+    "mi": "myocardial infarction",
+    "htn": "hypertension",
+    "cad": "coronary artery disease",
+    "copd": "chronic obstructive pulmonary disease",
+    "ra": "rheumatoid arthritis",
+    "sle": "systemic lupus erythematosus",
+    "als": "amyotrophic lateral sclerosis",
+    "covid": "sars-cov-2 coronavirus",
+    "covid-19": "sars-cov-2 coronavirus",
+    "covid19": "sars-cov-2 coronavirus",
+    "pcos": "polycystic ovary syndrome",
+    "ibd": "inflammatory bowel disease",
+    "nafld": "non-alcoholic fatty liver disease",
+    "nash": "non-alcoholic steatohepatitis",
+}
+
+
+def expand_biomedical_query(query: str) -> str:
+    """Expand recognized medical abbreviations to improve lexical and semantic retrieval coverage."""
+    if not query or not query.strip():
+        return ""
+    words = query.strip().split()
+    expansions: list[str] = []
+    for w in words:
+        clean_w = w.casefold().strip(",.?!:;()")
+        if clean_w in BIOMEDICAL_ACRONYMS:
+            expansions.append(BIOMEDICAL_ACRONYMS[clean_w])
+    if expansions:
+        return f"{query} {' '.join(expansions)}"
+    return query
+

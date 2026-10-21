@@ -8,7 +8,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import streamlit as st  # noqa: E402
 
 from biomentor.evaluation.evaluate_retrieval import METRIC_KEYS  # noqa: E402
-from biomentor.evaluation.results import aggregate_frame, load_results, query_frame, skipped_methods  # noqa: E402
+from biomentor.evaluation.results import (  # noqa: E402
+    aggregate_frame,
+    load_results,
+    query_frame,
+    significance_frame,
+    skipped_methods,
+)
 from biomentor.evaluation.runner import find_benchmark, run_and_save
 from biomentor.exceptions import BioMentorError
 from biomentor.ui import components as ui  # noqa: E402
@@ -60,6 +66,17 @@ else:
     st.dataframe(df.set_index("Method").style.format({**{k: "{:.3f}" for k in METRIC_KEYS}, "Latency mean (ms)": "{:.1f}", "Latency p95 (ms)": "{:.1f}"}))
     metric = st.selectbox("Chart metric", METRIC_KEYS, index=3)
     st.bar_chart(df.set_index("Method")[metric])
+    sig_df = significance_frame(results, baseline_mode="bm25", metric=metric)
+    if not sig_df.empty:
+        st.markdown(f"**Statistical Significance vs. BM25 Baseline ({metric.upper()}, Paired t-test)**")
+        st.dataframe(sig_df.set_index("Method"))
+    import json
+    st.download_button(
+        "Download Full Evaluation Report (JSON)",
+        data=json.dumps(results, indent=2),
+        file_name="biomentor_retrieval_evaluation.json",
+        mime="application/json",
+    )
 for label, reason in skipped_methods(results).items():
     st.info(f"**{label}** was not evaluated: {reason}")
 

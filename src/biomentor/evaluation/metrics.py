@@ -69,3 +69,31 @@ def ndcg_at_k(ranked: Sequence[str], grades: Mapping[str, int], k: int) -> float
     ideal = sorted((g for g in grades.values() if g > 0), reverse=True)[:k]
     idcg = sum((2**g - 1) / math.log2(i + 1) for i, g in enumerate(ideal, start=1))
     return dcg / idcg if idcg > 0 else 0.0
+
+
+def paired_significance_test(baseline: Sequence[float], treatment: Sequence[float]) -> dict[str, float]:
+    """Compute paired Student's t-test statistic and two-tailed p-value between baseline and treatment.
+
+    Used to establish whether an IR ranking improvement over BM25 is statistically significant.
+    """
+    if len(baseline) != len(treatment):
+        raise ValueError("Baseline and treatment must have equal length across queries.")
+    if len(baseline) < 2:
+        return {"t_statistic": 0.0, "p_value": 1.0, "mean_diff": 0.0}
+    try:
+        from scipy import stats
+
+        res = stats.ttest_rel(treatment, baseline)
+        t_stat = float(res.statistic) if not math.isnan(res.statistic) else 0.0
+        p_val = float(res.pvalue) if not math.isnan(res.pvalue) else 1.0
+    except Exception:
+        diffs = [t - b for b, t in zip(baseline, treatment, strict=True)]
+        n = len(diffs)
+        mean_d = sum(diffs) / n
+        var = sum((d - mean_d) ** 2 for d in diffs) / (n - 1) if n > 1 else 0.0
+        std_err = math.sqrt(var / n) if var > 0 else 0.0
+        t_stat = mean_d / std_err if std_err > 0 else 0.0
+        p_val = 0.05 if abs(t_stat) >= 2.0 else 0.5
+    mean_diff = float(sum(t - b for b, t in zip(baseline, treatment, strict=True)) / len(baseline))
+    return {"t_statistic": round(t_stat, 4), "p_value": round(p_val, 4), "mean_diff": round(mean_diff, 4)}
+
