@@ -21,7 +21,9 @@ from biomentor.ui import components as ui  # noqa: E402
 from biomentor.ui.runtime import get_embedder, get_reranker, get_settings, setup_page, show_error  # noqa: E402
 
 setup_page("Model Evaluation")
-st.title("Model Evaluation")
+st.markdown('<span class="tech-tag">Empirical IR Benchmark • Statistical Significance</span>', unsafe_allow_html=True)
+st.title("Model Evaluation & Ranking Metrics")
+st.caption("Empirical information retrieval evaluation with paired hypothesis tests (Wilcoxon), 1,000-sample bootstrap confidence intervals, MRR@k, and nDCG@k.")
 settings = get_settings()
 
 bench_path = find_benchmark(settings)

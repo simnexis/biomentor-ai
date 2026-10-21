@@ -460,6 +460,11 @@ button[data-testid="baseButton-secondary"]:hover * {{
   padding: 0.5rem 1.25rem !important;
   box-shadow: none !important;
 }}
+.stButton > button[kind="primary"] *,
+.stFormSubmitButton > button *,
+.stDownloadButton > button[kind="primary"] * {{
+  color: #FFFFFF !important;
+}}
 .stButton > button[kind="primary"]:hover,
 .stFormSubmitButton > button:hover {{
   background-color: #1D4ED8 !important;

@@ -23,7 +23,9 @@ from biomentor.ui.runtime import (  # noqa: E402
 )
 
 setup_page("Research Search")
-st.title("Research Search")
+st.markdown('<span class="tech-tag">Information Retrieval Engine • Lexical & Dense Search</span>', unsafe_allow_html=True)
+st.title("Research Search & Evidence Comparison")
+st.caption("Search biomedical literature via lexical BM25, dense embeddings, or hybrid RRF reranked pipelines. Compare paper evidence and inspect candidate score distributions.")
 settings, svc = get_settings(), get_search_service()
 
 with st.form("search"):

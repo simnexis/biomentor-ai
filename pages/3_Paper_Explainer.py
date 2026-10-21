@@ -21,7 +21,8 @@ from biomentor.ui.runtime import (  # noqa: E402
 )
 
 setup_page("Paper Explainer")
-st.title("Paper Explainer")
+st.markdown('<span class="tech-tag">In-Memory PDF Parsing • Local Vector Search</span>', unsafe_allow_html=True)
+st.title("Paper Explainer & PDF QA")
 settings, svc = get_settings(), get_search_service()
 
 st.caption(

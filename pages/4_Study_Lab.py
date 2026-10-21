@@ -25,7 +25,8 @@ from biomentor.ui.runtime import (  # noqa: E402
 )
 
 setup_page("Study Lab")
-st.title("Study Lab")
+st.markdown('<span class="tech-tag">Active Recall Engine • Verified Citation Grounding</span>', unsafe_allow_html=True)
+st.title("Study Lab & Active Recall")
 st.caption("Questions are built only from passages you choose, and every item must include a quote that appears word-for-word in its source.")
 settings, svc = get_settings(), get_search_service()
 
