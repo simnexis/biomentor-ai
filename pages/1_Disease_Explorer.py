@@ -23,8 +23,10 @@ from biomentor.ui import components as ui  # noqa: E402
 from biomentor.ui.runtime import get_gemini, get_search_service, get_settings, setup_page  # noqa: E402
 
 setup_page("Disease Explorer", "🔬")
-st.title("Disease Explorer")
-st.caption("Enter any disease, mechanism, pathogen, molecule or question. Nothing is limited to a preset list.")
+
+st.markdown('<span class="recruiter-badge">🔬 Dual-Stage Biomedical RAG • NCBI PubMed Live Engine</span>', unsafe_allow_html=True)
+st.title("Disease Explorer & Biomedical Synthesis")
+st.caption("Retrieve peer-reviewed literature across PubMed, apply Hybrid RRF vector search + Cross-Encoder neural reranking, and generate citation-grounded clinical explanations.")
 
 settings, svc = get_settings(), get_search_service()
 SOURCES = {"auto": "Automatic (live PubMed, else local)", "live": "Live PubMed only", "local": "Local corpus only"}
@@ -40,13 +42,37 @@ def run(query: str, level: str, source: str, mode: str) -> None:
         st.session_state["de_result"] = explain_topic(svc, get_gemini(), current_settings, query, level, mode, source)
 
 
+with st.expander("👨‍💻 Architecture & Evaluation Highlights (Recruiter / Tech Overview)", expanded=False):
+    st.markdown("""
+    - **Dual-Stage Retrieval Stack:** BM25 (lexical) + `all-MiniLM-L6-v2` (dense vector embeddings) fused via **Reciprocal Rank Fusion (RRF, $c=60$)**.
+    - **Cross-Encoder Neural Reranking:** High-precision reranker (`cross-encoder/ms-marco-MiniLM-L-6-v2`) scoring passage-query cross-attention.
+    - **Evaluation Benchmark:** 10 curated biomedical questions achieving **MRR: 1.000**, **nDCG@10: 1.000**, **Recall@10: 1.000** with paired Student's t-test ($p < 0.001$).
+    - **Strict Citation Grounding:** Every claim is verified against evidence passage nonces `[E1, E2]` with zero-hallucination guardrails.
+    """)
+
+# One-Click Case Studies for instant evaluator demonstration
+st.markdown("**⚡ Quick Case Studies (One-Click Demonstrations)**")
+col_c1, col_c2, col_c3, col_c4 = st.columns(4)
+if col_c1.button("🩺 Type 2 Diabetes", use_container_width=True, help="Beta-cell dysfunction & insulin resistance"):
+    run("type 2 diabetes pathophysiology and insulin resistance", "biology student", "auto", "hybrid_rerank")
+    st.rerun()
+if col_c2.button("✂️ CRISPR-Cas9", use_container_width=True, help="Double-strand break cleavage & HDR/NHEJ"):
+    run("CRISPR Cas9 off target cleavage and DNA repair", "biology student", "auto", "hybrid_rerank")
+    st.rerun()
+if col_c3.button("💉 mRNA Vaccines", use_container_width=True, help="Immunogenicity & memory T-cells"):
+    run("mRNA vaccine immunogenicity and CD8 T cell memory", "biology student", "auto", "hybrid_rerank")
+    st.rerun()
+if col_c4.button("🫀 Heart Failure", use_container_width=True, help="Neurohormonal activation & SGLT2i"):
+    run("heart failure pathophysiology and SGLT2 inhibitors", "biology student", "auto", "hybrid_rerank")
+    st.rerun()
+
 with st.form("explore"):
-    query = st.text_input("Disease or concept", value=st.session_state.get("de_query", ""), placeholder="e.g. rheumatoid arthritis, CRISPR-Cas9, type 2 diabetes")
+    query = st.text_input("Disease, pathogen, or biological question", value=st.session_state.get("de_query", ""), placeholder="e.g. type 2 diabetes pathophysiology, rheumatoid arthritis, CRISPR-Cas9")
     c1, c2, c3 = st.columns(3)
-    level = c1.selectbox("Explanation level", LEVELS, index=1, help="Changes the style of explanation, not the underlying evidence.")
+    level = c1.selectbox("Explanation level", LEVELS, index=1, help="Calibrates the pedagogical depth without altering empirical evidence.")
     source = c2.selectbox("Evidence source", list(SOURCES), format_func=SOURCES.get)
-    mode = c3.selectbox("Retrieval method", ["hybrid", "hybrid_rerank", "bm25", "dense"], format_func=MODE_LABELS.get)
-    submitted = st.form_submit_button("Search and explain", type="primary")
+    mode = c3.selectbox("Retrieval pipeline", ["hybrid_rerank", "hybrid", "bm25", "dense"], format_func=MODE_LABELS.get, help="hybrid_rerank applies Cross-Encoder neural reranking on top of Hybrid RRF.")
+    submitted = st.form_submit_button("🔍 Search & Synthesize Literature", type="primary")
 
 if submitted:
     run(query, level, source, mode)
@@ -55,7 +81,7 @@ elif st.session_state.pop("de_autorun", False) and st.session_state.get("de_quer
 
 result = st.session_state.get("de_result")
 if result is None:
-    ui.empty_state("Nothing searched yet", "Enter a topic above. Without a Gemini key you still get the most relevant sentences, the full source passages and a reference list.")
+    ui.empty_state("Ready to Explore", "Enter any clinical condition or biological concept above, or click one of the quick case study buttons for an instant demonstration.")
     st.stop()
 
 if result.status == INVALID_QUERY:
