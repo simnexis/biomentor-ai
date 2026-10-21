@@ -63,8 +63,8 @@ class EvidenceSet:
         for origin, passages in groups:
             used_n = used_chars = 0
             for entry in passages:
-                passage = entry.passage if isinstance(entry, RetrievedPassage) else entry
-                score = entry.score if isinstance(entry, RetrievedPassage) else None
+                passage = getattr(entry, "passage", entry)
+                score = getattr(entry, "score", None)
                 key = normalize_for_match(passage.text)
                 if passage.passage_id in seen_ids or key in seen_text:
                     continue

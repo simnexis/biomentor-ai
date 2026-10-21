@@ -70,6 +70,34 @@ class RetrievedPassage(BaseModel):
     component_ranks: dict[str, int] = Field(default_factory=dict)
     component_scores: dict[str, float] = Field(default_factory=dict)
 
+    @property
+    def text(self) -> str:
+        return self.passage.text
+
+    @property
+    def passage_id(self) -> str:
+        return self.passage.passage_id
+
+    @property
+    def document_id(self) -> str:
+        return self.passage.document_id
+
+    @property
+    def title(self) -> str:
+        return self.passage.title
+
+    @property
+    def pmid(self) -> str | None:
+        return self.passage.pmid
+
+    @property
+    def publication_year(self) -> int | None:
+        return self.passage.publication_year
+
+    @property
+    def journal(self) -> str | None:
+        return self.passage.journal
+
 
 # =============================================================================================
 # Part 2: structured LLM output
