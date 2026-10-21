@@ -98,6 +98,9 @@ class RetrievedPassage(BaseModel):
     def journal(self) -> str | None:
         return self.passage.journal
 
+    def retrieval_text(self) -> str:
+        return self.passage.retrieval_text()
+
 
 # =============================================================================================
 # Part 2: structured LLM output

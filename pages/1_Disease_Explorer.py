@@ -132,7 +132,7 @@ with tab_answer:
                     run(q, result.level, "auto", "hybrid_rerank")
                     st.rerun()
         ui.render_citation_report(result.report)
-    elif result.status == NO_GEMINI or (search and search.results and result.status != ABSTAINED):
+    elif result.status in (NO_GEMINI, ABSTAINED) or (search and search.results):
         st.info(
             "**Extractive Mode Active**: Displaying exact key sentences from peer-reviewed evidence. "
             "To generate comprehensive AI definitions, mechanisms, and clinical glossaries with Google Gemini, "

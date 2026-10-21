@@ -37,7 +37,8 @@ def extractive_digest(
     candidates: list[tuple[float, int, int, DigestItem]] = []
     seen: set[str] = set()
     for pos, hit in enumerate(results):
-        text = hit.passage.text
+        p = getattr(hit, "passage", hit)
+        text = p.text
         for start, end in sentence_spans(text):
             sentence = text[start:end].strip()
             if len(sentence) < 25 or sentence.casefold() in seen:
@@ -47,7 +48,7 @@ def extractive_digest(
                 continue
             seen.add(sentence.casefold())
             score = overlap + 0.15 / (1 + pos)
-            candidates.append((score, pos, start, DigestItem(sentence, hit.passage, round(score, 4))))
+            candidates.append((score, pos, start, DigestItem(sentence, p, round(score, 4))))
     candidates.sort(key=lambda c: (-c[0], c[1], c[2]))
     chosen: list[DigestItem] = []
     per_doc: dict[str, int] = {}
