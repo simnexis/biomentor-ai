@@ -20,8 +20,8 @@ from biomentor.ui.runtime import (  # noqa: E402
     show_error,
 )
 
-setup_page("Paper Explainer", "📄")
-st.title("📄 Paper Explainer")
+setup_page("Paper Explainer")
+st.title("Paper Explainer")
 settings, svc = get_settings(), get_search_service()
 
 st.caption(

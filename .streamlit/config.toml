@@ -1,5 +1,8 @@
+[client]
+showSidebarNavigation = false
+
 [theme]
-primaryColor = "#4E4AA8"
+primaryColor = "#2563EB"
 font = "sans serif"
 
 [server]

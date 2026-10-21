@@ -20,7 +20,7 @@ from biomentor.exceptions import BioMentorError
 from biomentor.ui import components as ui  # noqa: E402
 from biomentor.ui.runtime import get_embedder, get_reranker, get_settings, setup_page, show_error  # noqa: E402
 
-setup_page("Model Evaluation", "📊")
+setup_page("Model Evaluation")
 st.title("Model Evaluation")
 settings = get_settings()
 

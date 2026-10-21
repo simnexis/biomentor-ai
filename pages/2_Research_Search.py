@@ -22,7 +22,7 @@ from biomentor.ui.runtime import (  # noqa: E402
     show_error,
 )
 
-setup_page("Research Search", "🔎")
+setup_page("Research Search")
 st.title("Research Search")
 settings, svc = get_settings(), get_search_service()
 

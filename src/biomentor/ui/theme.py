@@ -90,12 +90,21 @@ def get_theme_css(mode: str = "auto") -> str:
   font-family: var(--sans);
 }}
 
-/* Top header: completely transparent, ZERO blur */
+/* Eradicate any blur across the entire application */
+*, *::before, *::after {{
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}}
+
+/* Top header: completely transparent, ZERO blur, non-blocking */
 [data-testid="stDecoration"] {{
   display: none !important;
 }}
 
-header[data-testid="stHeader"] {{
+header[data-testid="stHeader"],
+.stAppHeader,
+[data-testid="stHeader"],
+[data-testid="stHeader"] * {{
   background: transparent !important;
   background-color: transparent !important;
   backdrop-filter: none !important;
@@ -114,7 +123,7 @@ header[data-testid="stHeader"] {{
 
 .block-container {{
   max-width: 1080px;
-  padding-top: 2.8rem !important;
+  padding-top: 4rem !important;
   padding-bottom: 4rem;
 }}
 
@@ -124,10 +133,13 @@ header[data-testid="stHeader"] {{
   border-right: 1px solid var(--rule) !important;
 }}
 [data-testid="stSidebar"] .block-container {{
-  padding-top: 1.5rem !important;
+  padding-top: 2rem !important;
 }}
-[data-testid="stSidebarNav"] {{
-  display: none;
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarNavItems"],
+[data-testid="stSidebarNavSeparator"],
+ul[data-testid="stSidebarNavItems"] {{
+  display: none !important;
 }}
 [data-testid="stSidebar"] * {{
   color: var(--ink) !important;
