@@ -14,7 +14,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(os.environ.get("BIOMENTOR_ROOT") or Path(__file__).resolve().parents[2])
 
-DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 DEFAULT_RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 

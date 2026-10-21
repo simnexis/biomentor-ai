@@ -7,6 +7,8 @@ embedding model itself loads lazily, on the first semantic search - never at sta
 
 from __future__ import annotations
 
+import dataclasses
+
 import streamlit as st
 
 from biomentor.config import Settings, load_settings
@@ -16,27 +18,52 @@ from biomentor.retrieval.dense_retriever import SentenceTransformerEmbedder
 from biomentor.retrieval.reranker import CrossEncoderReranker
 from biomentor.services.research_service import SearchService
 from biomentor.ui.formatting import esc
-from biomentor.ui.theme import CSS
+from biomentor.ui.theme import get_theme_css
 
 SAFETY_BANNER = (
     "Educational and research use only - not medical advice. BioMentor can't diagnose, interpret personal "
     "symptoms or results, or recommend treatment. Talk to a qualified clinician about your own health."
 )
 
+SUPPORTED_GEMINI_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-1.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-pro",
+]
+
 
 def _secrets_dict() -> dict[str, str]:
     """Streamlit secrets as a plain dict (empty if there is no secrets file)."""
     try:
-        return {k: str(st.secrets[k]) for k in ("GEMINI_API_KEY", "GEMINI_MODEL", "NCBI_EMAIL", "NCBI_API_KEY", "EMBEDDING_MODEL") if k in st.secrets}
+        return {
+            k: str(st.secrets[k])
+            for k in ("GEMINI_API_KEY", "GEMINI_MODEL", "NCBI_EMAIL", "NCBI_API_KEY", "EMBEDDING_MODEL")
+            if k in st.secrets
+        }
     except Exception:  # no secrets.toml, or unreadable
         return {}
 
 
 @st.cache_resource(show_spinner=False)
-def get_settings() -> Settings:
+def _base_settings() -> Settings:
     settings = load_settings(overrides=_secrets_dict())
     setup_logging("INFO", secrets=[settings.gemini_api_key, settings.ncbi_api_key])
     return settings
+
+
+def get_settings() -> Settings:
+    """Settings with runtime session overrides applied."""
+    base = _base_settings()
+    user_key = st.session_state.get("gemini_api_key")
+    user_model = st.session_state.get("gemini_model")
+    if user_key is not None or user_model is not None:
+        return dataclasses.replace(
+            base,
+            gemini_api_key=user_key if user_key is not None else base.gemini_api_key,
+            gemini_model=user_model if user_model is not None else base.gemini_model,
+        )
+    return base
 
 
 @st.cache_resource(show_spinner=False)
@@ -56,19 +83,26 @@ def get_search_service() -> SearchService:
 
 
 @st.cache_resource(show_spinner=False)
-def _gemini_for(model: str, has_key: bool) -> GeminiClient:  # noqa: ARG001 - args form the cache key
-    return GeminiClient.from_settings(get_settings())
+def _gemini_for(api_key: str | None, model: str) -> GeminiClient:
+    s = get_settings()
+    return GeminiClient(
+        api_key,
+        model,
+        timeout_s=s.gemini_timeout_s,
+        max_retries=s.gemini_max_retries,
+    )
 
 
 def get_gemini() -> GeminiClient:
     s = get_settings()
-    return _gemini_for(s.gemini_model, s.has_gemini)
+    return _gemini_for(s.gemini_api_key, s.gemini_model)
 
 
 def setup_page(title: str, icon: str = "🧬") -> None:
     """Must be the first Streamlit call on a page."""
     st.set_page_config(page_title=f"{title} - BioMentor AI", page_icon=icon, layout="wide")
-    st.markdown(CSS, unsafe_allow_html=True)
+    current_theme = st.session_state.get("theme_mode", "auto")
+    st.markdown(get_theme_css(current_theme), unsafe_allow_html=True)
     _sidebar()
 
 
@@ -78,6 +112,24 @@ def _sidebar() -> None:
     with st.sidebar:
         st.markdown("### BioMentor AI")
         st.caption("Biomedical research and learning, with the evidence on show.")
+
+        # Interactive Theme Toggle
+        active_theme = st.session_state.get("theme_mode", "auto")
+        theme_options = ["auto", "light", "dark"]
+        theme_idx = theme_options.index(active_theme) if active_theme in theme_options else 0
+        chosen_theme = st.radio(
+            "Appearance Theme",
+            options=theme_options,
+            format_func=lambda x: {"auto": "🌓 Auto", "light": "☀️ Light", "dark": "🌙 Dark"}.get(x, x),
+            index=theme_idx,
+            horizontal=True,
+            key="sidebar_theme_mode",
+            label_visibility="collapsed",
+        )
+        if chosen_theme != active_theme:
+            st.session_state["theme_mode"] = chosen_theme
+            st.rerun()
+
         st.page_link("app.py", label="Home")
         st.page_link("pages/1_Disease_Explorer.py", label="Disease Explorer")
         st.page_link("pages/2_Research_Search.py", label="Research Search")
@@ -85,6 +137,59 @@ def _sidebar() -> None:
         st.page_link("pages/4_Study_Lab.py", label="Study Lab")
         st.page_link("pages/5_Model_Evaluation.py", label="Model Evaluation")
         st.divider()
+
+        # Gemini API Key & Model Configuration
+        with st.expander("🔑 Gemini AI Setup", expanded=not s.has_gemini):
+            st.caption("Enter your Google Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey).")
+            key_val = st.text_input(
+                "Gemini API Key",
+                value=st.session_state.get("gemini_api_key") or (s.gemini_api_key or ""),
+                type="password",
+                placeholder="AIzaSy...",
+                key="sidebar_gemini_key_input",
+                help="Key is stored securely in memory for this session and never exposed or logged.",
+            )
+            model_options = list(SUPPORTED_GEMINI_MODELS)
+            current_model = st.session_state.get("gemini_model") or s.gemini_model
+            if current_model not in model_options:
+                model_options.insert(0, current_model)
+            model_idx = model_options.index(current_model)
+            selected_model = st.selectbox("Gemini Model", model_options, index=model_idx, key="sidebar_gemini_model_sel")
+
+            col_save, col_test = st.columns(2)
+            if col_save.button("Save Key", type="primary", use_container_width=True, key="save_gemini_btn"):
+                cleaned = key_val.strip() if key_val else None
+                st.session_state["gemini_api_key"] = cleaned
+                st.session_state["gemini_model"] = selected_model
+                st.success("API key saved!")
+                st.rerun()
+
+            if col_test.button("Test Key", use_container_width=True, key="test_gemini_btn"):
+                test_key = key_val.strip() or s.gemini_api_key
+                if not test_key:
+                    st.warning("Please enter an API key above.")
+                else:
+                    with st.spinner("Connecting to Google Gemini..."):
+                        try:
+                            from google import genai
+                            client = genai.Client(api_key=test_key)
+                            res = client.models.generate_content(
+                                model=selected_model,
+                                contents="Respond with the single word 'Connected'.",
+                            )
+                            st.success(f"Connected! Response: {res.text.strip()}")
+                            st.session_state["gemini_api_key"] = test_key
+                            st.session_state["gemini_model"] = selected_model
+                        except Exception as exc:
+                            show_error(exc)
+
+            if s.has_gemini:
+                if st.button("Disconnect Key", use_container_width=True, key="disconnect_gemini_btn"):
+                    st.session_state["gemini_api_key"] = ""
+                    st.info("Key disconnected.")
+                    st.rerun()
+
+        # Corpus & LLM Status
         if svc.has_local_corpus():
             manifest = svc.index_manager.read_manifest() or {}
             n_docs = manifest.get("n_documents", "?")
@@ -94,10 +199,12 @@ def _sidebar() -> None:
                 st.markdown(f'<span class="chip src-pubmed">Local corpus: {esc(n_docs)} documents</span>', unsafe_allow_html=True)
         else:
             st.markdown('<span class="chip">No local corpus. Live PubMed only.</span>', unsafe_allow_html=True)
+
         if s.has_gemini:
-            st.markdown(f'<span class="chip src-pubmed">Gemini on: {esc(s.gemini_model)}</span>', unsafe_allow_html=True)
+            st.markdown(f'<span class="chip src-pubmed">Gemini active: {esc(s.gemini_model)}</span>', unsafe_allow_html=True)
         else:
-            st.markdown('<span class="chip">Gemini off. Sources and key sentences only.</span>', unsafe_allow_html=True)
+            st.markdown('<span class="chip">Gemini off. Extractive mode only.</span>', unsafe_allow_html=True)
+
         st.divider()
         st.caption(SAFETY_BANNER)
 

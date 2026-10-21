@@ -85,7 +85,7 @@ cp .env.example .env               # then edit GEMINI_API_KEY=...
 cp .streamlit/secrets.toml.example .streamlit/secrets.toml   # then edit
 ```
 
-The model is configurable via `GEMINI_MODEL` (default `gemini-3.8-flash`, the identifier listed on Google's models page when this was written). Model names change; check <https://ai.google.dev/gemini-api/docs/models> and update `.env` if you get a "model not found" message. The app handles missing/invalid keys, quota limits, timeouts and malformed model output without crashing; invalid keys and unknown models are never retried.
+The model is configurable via `GEMINI_MODEL` (default `gemini-2.5-flash`, the current standard fast Gemini model). Model names change; check <https://ai.google.dev/gemini-api/docs/models> and update `.env` or the sidebar settings if you wish to use another model (e.g. `gemini-1.5-flash`, `gemini-2.0-flash`). The app handles missing/invalid keys, quota limits, timeouts and malformed model output without crashing; invalid keys and unknown models are never retried.
 
 ## Get data
 

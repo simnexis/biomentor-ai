@@ -31,16 +31,17 @@ SOURCES = {"auto": "Automatic (live PubMed, else local)", "live": "Live PubMed o
 
 
 def run(query: str, level: str, source: str, mode: str) -> None:
+    current_settings = get_settings()
     st.session_state["de_query"] = query
     if source == "local" and not svc.has_local_corpus():
         ui.notice("There is no local corpus yet. Choose Automatic or Live PubMed, or run python scripts/prepare_demo_data.py.", "warn")
         return
-    with st.spinner("Searching the literature" + (" and writing the explanation" if settings.has_gemini else "") + ". The first semantic search downloads a small model and can take a minute."):
-        st.session_state["de_result"] = explain_topic(svc, get_gemini(), settings, query, level, mode, source)
+    with st.spinner("Searching the literature" + (" and generating AI explanation..." if current_settings.has_gemini else "...")):
+        st.session_state["de_result"] = explain_topic(svc, get_gemini(), current_settings, query, level, mode, source)
 
 
 with st.form("explore"):
-    query = st.text_input("Disease or concept", value=st.session_state.get("de_query", ""), placeholder="e.g. rheumatoid arthritis, CRISPR-Cas9, how do vaccines work?")
+    query = st.text_input("Disease or concept", value=st.session_state.get("de_query", ""), placeholder="e.g. rheumatoid arthritis, CRISPR-Cas9, type 2 diabetes")
     c1, c2, c3 = st.columns(3)
     level = c1.selectbox("Explanation level", LEVELS, index=1, help="Changes the style of explanation, not the underlying evidence.")
     source = c2.selectbox("Evidence source", list(SOURCES), format_func=SOURCES.get)
@@ -50,7 +51,7 @@ with st.form("explore"):
 if submitted:
     run(query, level, source, mode)
 elif st.session_state.pop("de_autorun", False) and st.session_state.get("de_query"):
-    run(st.session_state["de_query"], "biology student", "auto", "hybrid")
+    run(st.session_state["de_query"], "biology student", "auto", "hybrid_rerank")
 
 result = st.session_state.get("de_result")
 if result is None:
@@ -102,14 +103,37 @@ with tab_answer:
             st.subheader("Keep exploring")
             for i, q in enumerate(out.follow_up_questions):
                 if st.button(q, key=f"fu{i}"):
-                    run(q, result.level, "auto", "hybrid")
+                    run(q, result.level, "auto", "hybrid_rerank")
                     st.rerun()
         ui.render_citation_report(result.report)
     elif result.status == NO_GEMINI or (search and search.results and result.status != ABSTAINED):
-        ui.notice("No written explanation was generated because Gemini is not set up. These are the sentences from the sources that best match your question, quoted exactly.", "info")
+        st.info(
+            "💡 **Extractive Mode Active**: Displaying exact key sentences from peer-reviewed evidence. "
+            "To generate comprehensive AI definitions, mechanisms, and clinical glossaries with Google Gemini, "
+            "enter your API key in the sidebar or right here:"
+        )
+        c_k, c_b = st.columns([3, 1])
+        inline_key = c_k.text_input("Gemini API Key", type="password", placeholder="Paste Gemini API Key here (AIzaSy...)", key="inline_gemini_key", label_visibility="collapsed")
+        if c_b.button("🚀 Activate AI", type="primary", use_container_width=True, key="inline_activate_gemini"):
+            if inline_key.strip():
+                st.session_state["gemini_api_key"] = inline_key.strip()
+                run(result.query, result.level, source, mode)
+                st.rerun()
+            else:
+                st.warning("Please paste your Gemini API key.")
+
+        st.subheader("Key Findings from Evidence")
         digest = extractive_digest(result.query, search.results if search else [])
         if digest:
             ui.render_digest(digest, result.query)
+        elif search and search.results:
+            st.markdown('<p class="prose">Retrieved literature excerpts:</p>', unsafe_allow_html=True)
+            for h in search.results[:3]:
+                who = f"PMID {h.passage.pmid}" if h.passage.pmid else (h.passage.title or h.passage.passage_id)
+                st.markdown(
+                    f'<div class="quote">{ui.highlight_html(h.passage.text, result.query)}<div class="meta">From {ui.esc(who[:110])}</div></div>',
+                    unsafe_allow_html=True,
+                )
         else:
             ui.empty_state("No sentence matched closely", "Open the Sources tab to read the retrieved passages.")
     if len(result.evidence):

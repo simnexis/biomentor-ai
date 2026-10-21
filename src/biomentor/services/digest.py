@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from biomentor.data.chunking import sentence_spans
-from biomentor.data.preprocessing import content_stems
+from biomentor.data.preprocessing import content_stems, expand_biomedical_query
 from biomentor.generation.evidence import EvidenceSet
 from biomentor.schemas import Document, Passage, RetrievedPassage
 
@@ -25,12 +25,13 @@ class DigestItem:
 
 
 def extractive_digest(
-    query: str, results: list[RetrievedPassage], max_sentences: int = 5, max_per_document: int = 2, min_overlap: float = 0.2
+    query: str, results: list[RetrievedPassage], max_sentences: int = 5, max_per_document: int = 2, min_overlap: float = 0.15
 ) -> list[DigestItem]:
     """Best-matching sentences, exact quotes. Score = share of the query's content stems found in
     the sentence, plus a small bonus for sentences from highly ranked passages. Sentences with
     overlap below ``min_overlap`` are never returned (better empty than irrelevant)."""
-    query_stems = {s for s in content_stems(query) if s not in GENERIC_QUERY_WORDS} or content_stems(query)
+    expanded = expand_biomedical_query(query)
+    query_stems = {s for s in content_stems(expanded) if s not in GENERIC_QUERY_WORDS} or content_stems(expanded)
     if not query_stems or not results:
         return []
     candidates: list[tuple[float, int, int, DigestItem]] = []
