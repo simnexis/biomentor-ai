@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 import streamlit as st  # noqa: E402
 
+from biomentor.evaluation.results import aggregate_frame, load_results  # noqa: E402
 from biomentor.ui import components as ui  # noqa: E402
 from biomentor.ui.runtime import get_search_service, get_settings, setup_page  # noqa: E402
 
@@ -49,23 +50,48 @@ st.markdown("## Platform Capabilities")
 a, b = st.columns(2)
 with a:
     st.page_link("pages/1_Disease_Explorer.py", label="Disease Explorer")
-    st.caption("Explain any topic from the literature, with sources, references and a Markdown export.")
+    st.caption("Literature-grounded medical synthesis, structured clinical summaries, and evidence cards.")
     st.page_link("pages/3_Paper_Explainer.py", label="Paper Explainer")
-    st.caption("Upload a PDF, get a summary, and ask questions answered only from that paper.")
+    st.caption("Upload PDF papers, extract in-memory passages, and question-answer with verbatim quote validation.")
     st.page_link("pages/5_Model_Evaluation.py", label="Model Evaluation")
-    st.caption("Measure retrieval quality with real metrics. Nothing is shown until you run it.")
+    st.caption("Comprehensive retrieval benchmarking with paired statistical tests (Wilcoxon) and bootstrap CIs.")
 with b:
     st.page_link("pages/2_Research_Search.py", label="Research Search")
-    st.caption("Keyword, semantic and hybrid search. Select papers to compare side by side.")
+    st.caption("Compare BM25, dense semantic, hybrid RRF, and cross-encoder neural reranked retrieval.")
     st.page_link("pages/4_Study_Lab.py", label="Study Lab")
-    st.caption("Quizzes and flashcards built from real passages, each with a supporting quote.")
+    st.caption("Active-recall clinical quizzes and flashcards grounded by exact word-for-word citations.")
+
+# Architecture & Live Benchmark Highlights
+with st.expander("System Architecture & Engineering Specifications", expanded=False):
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown("**1. Lexical Search**")
+        st.caption("BM25 ($k_1=1.5, b=0.75$)\\n\\nBiomedical tokenization with hyphen preservation (e.g. `SARS-CoV-2`).")
+    with c2:
+        st.markdown("**2. Dense Semantic**")
+        st.caption("Bi-Encoder (`all-MiniLM-L6-v2`)\\n\\n384-dim normalized embeddings with fast inner-product search.")
+    with c3:
+        st.markdown("**3. Rank Fusion**")
+        st.caption("Reciprocal Rank Fusion\\n\\n$RRF(d) = \\sum \\frac{1}{60 + r(d)}$\\n\\nCombines disparate score distributions.")
+    with c4:
+        st.markdown("**4. Neural Reranker**")
+        st.caption("Cross-Encoder (`ms-marco-MiniLM`)\\n\\nFull self-attention between query and candidate passages.")
+eval_results = load_results(settings.eval_dir)
+if eval_results:
+    st.markdown("## Live Retrieval Benchmark")
+    df_agg = aggregate_frame(eval_results)
+    rename_map = {
+        "recall_at_5": "Recall@5",
+        "recall_at_10": "Recall@10",
+        "precision_at_5": "Precision@5",
+        "mrr": "MRR",
+        "ndcg_at_10": "nDCG@10",
+        "Latency mean (ms)": "Latency (ms)",
+    }
+    df_display = df_agg.rename(columns=rename_map)
+    display_cols = ["Method", "Recall@5", "Recall@10", "MRR", "nDCG@10", "Latency (ms)"]
+    available_cols = [c for c in display_cols if c in df_display.columns]
+    st.dataframe(df_display[available_cols], hide_index=True, use_container_width=True)
 
 if not settings.has_gemini:
-    ui.notice("No Gemini key is set. Search, key sentences, references and evaluation all work without one. Add GEMINI_API_KEY to also get written explanations.", "info")
-if not svc.has_local_corpus():
-    ui.notice("No local corpus yet, so searches use live PubMed (needs internet). For offline use run: python scripts/prepare_demo_data.py", "info")
-
-with st.expander("Setup status"):
-    st.write(f"- Local corpus prepared: **{'yes' if svc.has_local_corpus() else 'no'}**")
-    st.write(f"- Gemini configured: **{'yes' if settings.has_gemini else 'no (optional)'}**")
-    st.write(f"- Embedding model: `{settings.embedding_model}` (downloaded on first semantic search, about 100 MB)")
+    ui.notice("No Gemini API key set. Lexical, dense, hybrid retrieval, references, and benchmarks run locally. Add GEMINI_API_KEY in the sidebar to activate LLM explanations.", "info")
