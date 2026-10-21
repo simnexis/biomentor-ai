@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  biomentor-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: biomentor-ai:latest
+    container_name: biomentor_ai
+    ports:
+      - "8501:8501"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - NCBI_EMAIL=${NCBI_EMAIL:-you@example.com}
+      - NCBI_API_KEY=${NCBI_API_KEY:-}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

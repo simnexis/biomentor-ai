@@ -1,0 +1,34 @@
+# Secrets
+.env
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Local data, caches, indexes, evaluation outputs (regenerate with the scripts)
+data/raw/*
+data/processed/*
+data/indexes/*
+data/evaluation/results/
+data/evaluation/answer_reviews/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/indexes/.gitkeep
+!data/evaluation/.gitkeep
+
+# Uploads and caches
+uploads/
+.cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

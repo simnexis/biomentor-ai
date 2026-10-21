@@ -1,0 +1,17 @@
+# Runtime dependencies (lower bounds only; pin exact versions with `pip freeze` once your
+# environment is verified). Python 3.10+ is required.
+streamlit>=1.40
+pandas>=2.0
+numpy>=1.26
+scikit-learn>=1.4
+sentence-transformers>=3.0
+faiss-cpu>=1.8
+pymupdf>=1.24
+requests>=2.31
+pydantic>=2.6
+google-genai>=1.0
+python-dotenv>=1.0
+
+# Development / testing
+pytest>=8.0
+ruff>=0.5
