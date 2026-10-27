@@ -1,5 +1,5 @@
 method,mode,recall@5,recall@10,precision@5,mrr,ndcg@10,latency_ms_mean
-Keyword (BM25),bm25,0.8571,0.9286,0.2,0.872,0.8826,0.61
-Semantic (embeddings),dense,1.0,1.0,0.2286,0.9524,0.9643,20.64
-"Hybrid (BM25 + semantic, RRF)",hybrid,0.9286,1.0,0.2143,0.9048,0.9277,2.18
-Hybrid + cross-encoder rerank,hybrid_rerank,1.0,1.0,0.2286,1.0,1.0,2943.98
+Keyword (BM25),bm25,0.8571,0.9286,0.2,0.872,0.8826,0.25
+Semantic (embeddings),dense,1.0,1.0,0.2286,0.9524,0.9643,11.06
+"Hybrid (BM25 + semantic, RRF)",hybrid,0.9286,1.0,0.2143,0.9048,0.9277,0.81
+Hybrid + cross-encoder rerank,hybrid_rerank,1.0,1.0,0.2286,1.0,1.0,1869.74
